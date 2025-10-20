@@ -1,11 +1,10 @@
-import express from 'express'
+import express from "express";
 
 // Create Express application
-const app = express()
-
+const app = express();
 
 // Export the app for use in other modules (like tests)
-export { app }
+export { app };
 
 // Default export for convenience
-export default app
+export default app;
