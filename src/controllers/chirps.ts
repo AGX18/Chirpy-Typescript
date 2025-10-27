@@ -1,21 +1,32 @@
 import { NextFunction, Response, Request } from "express";
 import { BadRequest } from "../errors.js";
-export function validate_chirp(req: Request, res: Response) {
-  const bodyText = req.body?.body;
-  if (typeof bodyText !== "string") {
-    return res.status(400).json({ error: "Invalid JSON" });
+import { NewChirp } from "../database/schema.js";
+import { Result } from "drizzle-orm/sqlite-core/session.js";
+import { createChirp } from "../database/queries/chirps.js";
+export function validate_chirp(body: string) {
+  if (typeof body !== "string") {
+    throw new BadRequest("Chirp's body is invalid.");
   }
-  if (!isBodyValid(bodyText)) {
-    // res.status(400).json({
-    //   error: "Chirp is too long",
-    // });
+  if (!isBodyValid(body)) {
     throw new BadRequest("Chirp is too long. Max length is 140");
-    return;
   }
-  const filteredBody = filterBody(bodyText);
+  const filteredBody = filterBody(body);
+  return filteredBody;
+}
 
-  res.status(200).send({
-    cleanedBody: filteredBody,
+export async function createChirpHandler(req: Request, res: Response) {
+  const filteredBody = validate_chirp(req.body.body);
+  const newChirp = await createChirp({
+    user_id: req.body.userId,
+    body: filteredBody,
+  });
+  res.status(201).send({
+    // id: newChirp.id,
+    // createdAt: newChirp.createdAt,
+    // updatedAt: newChirp.updatedAt,
+    // body: newChirp.body,
+    ...newChirp,
+    userId: newChirp.user_id,
   });
 }
 

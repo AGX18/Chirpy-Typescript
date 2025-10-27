@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { middlewareLogResponses } from "./middlewares/logging.js";
 import { middlewareMetricsInc } from "./middlewares/metrics.js";
 import { metricsHandler, resetHandler } from "./controllers/metrics.js";
-import { validate_chirp } from "./controllers/chirps.js";
+import { createChirpHandler } from "./controllers/chirps.js";
 import { BadRequest } from "./errors.js";
 import { createUserHandler } from "./controllers/users.js";
 // Create Express application
@@ -15,11 +15,12 @@ app.use(express.json());
 app.get("/api/healthz", handlerReadiness);
 app.get("/admin/metrics", metricsHandler);
 app.post("/admin/reset", resetHandler);
-app.post("/api/validate_chirp", validate_chirp);
 /**
  * It accepts an email as JSON in the request body and returns the user's ID, email, and timestamps in the response body
  */
 app.post("/api/users", createUserHandler);
+
+app.post("/api/chirps", createChirpHandler);
 export { app };
 
 // Default export for convenience
