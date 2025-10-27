@@ -1,7 +1,8 @@
 import { config } from "../config.js";
 import { NextFunction, Response, Request } from "express";
-
-export function metricsHandler(req: Request, res: Response) {
+import { deleteAllUsers } from "../database/queries/users.js";
+import { env, isProd } from "../env.js";
+export async function metricsHandler(req: Request, res: Response) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.status(200).send(`
     <html>
@@ -13,7 +14,11 @@ export function metricsHandler(req: Request, res: Response) {
 `);
 }
 
-export function resetHandler(req: Request, res: Response) {
+export async function resetHandler(req: Request, res: Response) {
+  if (isProd()) {
+    res.status(403).end();
+  }
   config.fileserverHits = 0;
+  await deleteAllUsers();
   res.end();
 }

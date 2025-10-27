@@ -3,6 +3,8 @@ import { middlewareLogResponses } from "./middlewares/logging.js";
 import { middlewareMetricsInc } from "./middlewares/metrics.js";
 import { metricsHandler, resetHandler } from "./controllers/metrics.js";
 import { validate_chirp } from "./controllers/chirps.js";
+import { BadRequest } from "./errors.js";
+import { createUserHandler } from "./controllers/users.js";
 // Create Express application
 const app = express();
 app.use(middlewareLogResponses);
@@ -14,6 +16,10 @@ app.get("/api/healthz", handlerReadiness);
 app.get("/admin/metrics", metricsHandler);
 app.post("/admin/reset", resetHandler);
 app.post("/api/validate_chirp", validate_chirp);
+/**
+ * It accepts an email as JSON in the request body and returns the user's ID, email, and timestamps in the response body
+ */
+app.post("/api/users", createUserHandler);
 export { app };
 
 // Default export for convenience
@@ -38,6 +44,16 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
       message: "The request body contains invalid JSON.",
     });
   }
+
+  if (err instanceof BadRequest) {
+    res.status(400).json({
+      error: err.message,
+    });
+  }
+  console.log(err);
+  return res.status(500).json({
+    error: "Something went wrong on our end",
+  });
   // If it's some other kind of error, pass it to the default handler
-  next(err);
+  // next(err);
 });
