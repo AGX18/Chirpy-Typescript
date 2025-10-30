@@ -37,3 +37,5 @@ export const userChirps = relations(chirps, ({ one }) => ({
 
 export type NewUser = typeof users.$inferInsert;
 export type NewChirp = typeof chirps.$inferInsert;
+
+export type Chirp = typeof chirps.$inferSelect;

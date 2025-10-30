@@ -2,7 +2,11 @@ import express, { Request, Response, NextFunction } from "express";
 import { middlewareLogResponses } from "./middlewares/logging.js";
 import { middlewareMetricsInc } from "./middlewares/metrics.js";
 import { metricsHandler, resetHandler } from "./controllers/metrics.js";
-import { createChirpHandler } from "./controllers/chirps.js";
+import {
+  createChirpHandler,
+  getAllChirpsHandler,
+  getChirpHandler,
+} from "./controllers/chirps.js";
 import { BadRequest } from "./errors.js";
 import { createUserHandler } from "./controllers/users.js";
 // Create Express application
@@ -21,6 +25,9 @@ app.post("/admin/reset", resetHandler);
 app.post("/api/users", createUserHandler);
 
 app.post("/api/chirps", createChirpHandler);
+app.get("/api/chirps", getAllChirpsHandler);
+app.get("/api/chirps/:chirpID", getChirpHandler);
+
 export { app };
 
 // Default export for convenience

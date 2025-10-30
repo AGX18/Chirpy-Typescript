@@ -2,7 +2,11 @@ import { NextFunction, Response, Request } from "express";
 import { BadRequest } from "../errors.js";
 import { NewChirp } from "../database/schema.js";
 import { Result } from "drizzle-orm/sqlite-core/session.js";
-import { createChirp } from "../database/queries/chirps.js";
+import {
+  createChirp,
+  getAllChirps,
+  getChirp,
+} from "../database/queries/chirps.js";
 export function validate_chirp(body: string) {
   if (typeof body !== "string") {
     throw new BadRequest("Chirp's body is invalid.");
@@ -51,4 +55,18 @@ function filterBody(body: string): string {
   });
 
   return filteredBody.join(" ");
+}
+
+export async function getAllChirpsHandler(req: Request, res: Response) {
+  const allChirps = await getAllChirps();
+  res.status(200).json(allChirps);
+}
+
+export async function getChirpHandler(req: Request, res: Response) {
+  const selectedChirp = await getChirp(req.params.chirpID);
+  if (selectedChirp == undefined) {
+    res.status(404).end();
+    return;
+  }
+  res.status(200).json(selectedChirp);
 }
