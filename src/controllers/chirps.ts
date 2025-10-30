@@ -7,6 +7,8 @@ import {
   getAllChirps,
   getChirp,
 } from "../database/queries/chirps.js";
+import { validateJWT, getBearerToken } from "../utils/auth.js";
+import { env } from "../env.js";
 export function validate_chirp(body: string) {
   if (typeof body !== "string") {
     throw new BadRequest("Chirp's body is invalid.");
@@ -19,9 +21,11 @@ export function validate_chirp(body: string) {
 }
 
 export async function createChirpHandler(req: Request, res: Response) {
+  const token = getBearerToken(req);
+  const userId = validateJWT(token, env.JWT_SECRET);
   const filteredBody = validate_chirp(req.body.body);
   const newChirp = await createChirp({
-    user_id: req.body.userId,
+    user_id: userId,
     body: filteredBody,
   });
   res.status(201).send({

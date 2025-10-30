@@ -33,8 +33,8 @@ const envSchema = z.object({
   DB_POOL_MAX: z.coerce.number().positive().default(10),
 
   // JWT & Authentication
-  //   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
-  //   JWT_EXPIRES_IN: z.string().default('7d'),
+  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+  JWT_EXPIRES_IN: z.string().default("1h"),
   //   REFRESH_TOKEN_SECRET: z.string().min(32).optional(),
   //   REFRESH_TOKEN_EXPIRES_IN: z.string().default('30d'),
 

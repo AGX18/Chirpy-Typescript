@@ -1,6 +1,7 @@
 import * as argon2 from "argon2";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { UnauthorizedError } from "../errors";
+import { Request } from "express";
 
 export function hashPassword(password: string): Promise<string> {
   return argon2.hash(password);
@@ -26,9 +27,11 @@ export function makeJWT(
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + expiresIn,
   };
-  const token = jwt.sign(data, secret, {
-    expiresIn: expiresIn,
-  });
+  console.log("creating token");
+  console.log(data);
+  console.log(expiresIn);
+  const token = jwt.sign(data, secret);
+  console.log(token);
   return token;
 }
 
@@ -43,5 +46,17 @@ export function validateJWT(tokenString: string, secret: string): string {
     return data;
   }
 
-  return data.sub!;
+  if (!data.sub) {
+    throw new UnauthorizedError("Token payload is missing 'sub' (subject)");
+  }
+
+  return data.sub;
+}
+
+export function getBearerToken(req: Request): string {
+  const token = req.get("Authorization")?.split("Bearer ")[1];
+  if (!token) {
+    throw new UnauthorizedError("access token is not found!");
+  }
+  return token;
 }
