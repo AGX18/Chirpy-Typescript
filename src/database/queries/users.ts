@@ -1,5 +1,6 @@
 import { db } from "../index.js";
 import { NewUser, users, UserResponse } from "../schema.js";
+import { eq } from "drizzle-orm";
 
 export async function createUser(user: NewUser): Promise<UserResponse> {
   const [result] = await db
@@ -20,4 +21,9 @@ export async function createUser(user: NewUser): Promise<UserResponse> {
 
 export async function deleteAllUsers() {
   const [res] = await db.delete(users);
+}
+
+export async function getUserByEmail(email: string) {
+  const [result] = await db.select().from(users).where(eq(users.email, email));
+  return result;
 }

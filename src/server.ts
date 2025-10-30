@@ -7,8 +7,8 @@ import {
   getAllChirpsHandler,
   getChirpHandler,
 } from "./controllers/chirps.js";
-import { BadRequest } from "./errors.js";
-import { createUserHandler } from "./controllers/users.js";
+import { BadRequest, UnauthorizedError } from "./errors.js";
+import { createUserHandler, loginHandler } from "./controllers/users.js";
 // Create Express application
 const app = express();
 app.use(middlewareLogResponses);
@@ -23,6 +23,7 @@ app.post("/admin/reset", resetHandler);
  * It accepts an email as JSON in the request body and returns the user's ID, email, and timestamps in the response body
  */
 app.post("/api/users", createUserHandler);
+app.post("/api/login", loginHandler);
 
 app.post("/api/chirps", createChirpHandler);
 app.get("/api/chirps", getAllChirpsHandler);
@@ -55,6 +56,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
   if (err instanceof BadRequest) {
     res.status(400).json({
+      error: err.message,
+    });
+  }
+  if (err instanceof UnauthorizedError) {
+    res.status(401).json({
       error: err.message,
     });
   }
