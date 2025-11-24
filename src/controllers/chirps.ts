@@ -20,22 +20,30 @@ export function validate_chirp(body: string) {
   return filteredBody;
 }
 
-export async function createChirpHandler(req: Request, res: Response) {
-  const token = getBearerToken(req);
-  const userId = validateJWT(token, env.JWT_SECRET);
-  const filteredBody = validate_chirp(req.body.body);
-  const newChirp = await createChirp({
-    user_id: userId,
-    body: filteredBody,
-  });
-  res.status(201).send({
-    // id: newChirp.id,
-    // createdAt: newChirp.createdAt,
-    // updatedAt: newChirp.updatedAt,
-    // body: newChirp.body,
-    ...newChirp,
-    userId: newChirp.user_id,
-  });
+export async function createChirpHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const token = getBearerToken(req);
+    const userId = validateJWT(token, env.JWT_SECRET);
+    const filteredBody = validate_chirp(req.body.body);
+    const newChirp = await createChirp({
+      user_id: userId,
+      body: filteredBody,
+    });
+    res.status(201).send({
+      // id: newChirp.id,
+      // createdAt: newChirp.createdAt,
+      // updatedAt: newChirp.updatedAt,
+      // body: newChirp.body,
+      ...newChirp,
+      userId: newChirp.user_id,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
 function isBodyValid(body: string) {
@@ -61,16 +69,32 @@ function filterBody(body: string): string {
   return filteredBody.join(" ");
 }
 
-export async function getAllChirpsHandler(req: Request, res: Response) {
-  const allChirps = await getAllChirps();
-  res.status(200).json(allChirps);
+export async function getAllChirpsHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const allChirps = await getAllChirps();
+    res.status(200).json(allChirps);
+  } catch (error) {
+    next(error);
+  }
 }
 
-export async function getChirpHandler(req: Request, res: Response) {
-  const selectedChirp = await getChirp(req.params.chirpID);
-  if (selectedChirp == undefined) {
-    res.status(404).end();
-    return;
+export async function getChirpHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const selectedChirp = await getChirp(req.params.chirpID);
+    if (selectedChirp == undefined) {
+      res.status(404).end();
+      return;
+    }
+    res.status(200).json(selectedChirp);
+  } catch (error) {
+    next(error);
   }
-  res.status(200).json(selectedChirp);
 }

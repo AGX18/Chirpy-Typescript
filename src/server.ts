@@ -8,7 +8,12 @@ import {
   getChirpHandler,
 } from "./controllers/chirps.js";
 import { BadRequest, UnauthorizedError } from "./errors.js";
-import { createUserHandler, loginHandler } from "./controllers/users.js";
+import {
+  createUserHandler,
+  loginHandler,
+  refreshHandler,
+  revokeHandler,
+} from "./controllers/users.js";
 // Create Express application
 const app = express();
 app.use(middlewareLogResponses);
@@ -28,6 +33,9 @@ app.post("/api/login", loginHandler);
 app.post("/api/chirps", createChirpHandler);
 app.get("/api/chirps", getAllChirpsHandler);
 app.get("/api/chirps/:chirpID", getChirpHandler);
+
+app.post("/api/refresh", refreshHandler);
+app.post("/api/revoke", revokeHandler);
 
 export { app };
 
@@ -58,11 +66,13 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     res.status(400).json({
       error: err.message,
     });
+    return;
   }
   if (err instanceof UnauthorizedError) {
     res.status(401).json({
       error: err.message,
     });
+    return;
   }
   console.log(err);
   return res.status(500).json({

@@ -36,7 +36,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().default("1h"),
   //   REFRESH_TOKEN_SECRET: z.string().min(32).optional(),
-  //   REFRESH_TOKEN_EXPIRES_IN: z.string().default('30d'),
+  REFRESH_TOKEN_EXPIRES_IN: z.int().default(60),
 
   // Security
   //   BCRYPT_ROUNDS: z.coerce.number().min(10).max(20).default(12),
