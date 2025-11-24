@@ -2,6 +2,7 @@ import {
   createUser,
   getUserByEmail,
   getUserById,
+  makeUserChirpyRed,
   updateUser,
 } from "src/database/queries/users.js";
 import { Response, Request, NextFunction } from "express";
@@ -11,8 +12,9 @@ import {
   makeJWT,
   makeRefreshToken,
   getBearerToken,
+  getAPIKey,
 } from "../utils/auth.js";
-import { UnauthorizedError } from "../errors.js";
+import { NotFoundError, UnauthorizedError } from "../errors.js";
 import { UserResponse } from "../database/schema";
 import { env } from "../env.js";
 import {
@@ -41,13 +43,13 @@ export async function loginHandler(
   next: NextFunction,
 ) {
   try {
-    const user = await getUserByEmail(req.body.email);
+    const { hashed_password, ...user } = await getUserByEmail(req.body.email);
     if (!user) {
       throw new UnauthorizedError("Incorrect email or password");
     }
     const isPasswordLegit = await checkPasswordHash(
       req.body.password,
-      user.hashed_password,
+      hashed_password,
     );
 
     if (!isPasswordLegit) {
@@ -59,15 +61,11 @@ export async function loginHandler(
     const refresh_token = makeRefreshToken();
     await createRefreshToken(refresh_token, user.id);
 
-    const returnedUser: UserResponse = {
-      email: user.email,
-      id: user.id,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      token: token,
-      refreshToken: refresh_token,
-    };
-    res.json(returnedUser);
+    res.json({
+      ...user,
+      token,
+      refresh_token,
+    });
   } catch (error) {
     next(error);
   }
@@ -148,5 +146,45 @@ function parseDurationToSeconds(timeString: string) {
       return number * 60 * 60 * 24;
     default:
       return NaN; // Unknown unit
+  }
+}
+
+/**
+ * the shape of the req body
+ * {
+  "event": "user.upgraded",
+  "data": {
+    "userId": "3311741c-680c-4546-99f3-fc9efac2036c"
+  }
+}
+ * @param req 
+ * @param res 
+ */
+export async function polkaWebHookHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const key = getAPIKey(req);
+    if (key !== env.POLKA_KEY) {
+      throw new UnauthorizedError("invalid api key");
+    }
+    const data = req.body;
+    if (data.event === "user.upgraded") {
+      const userId = data.data.userId;
+      const user = await getUserById(userId);
+      if (user) {
+        await makeUserChirpyRed(user.id);
+        res.status(204).end();
+      } else {
+        // user is not found
+        throw new NotFoundError("user not found");
+      }
+    } else {
+      res.status(204).end();
+    }
+  } catch (error) {
+    next(error);
   }
 }

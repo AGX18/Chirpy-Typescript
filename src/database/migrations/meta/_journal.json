@@ -29,6 +29,13 @@
       "when": 1763935058529,
       "tag": "0003_minor_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1763991338689,
+      "tag": "0004_rapid_tempest",
+      "breakpoints": true
     }
   ]
 }

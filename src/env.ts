@@ -38,6 +38,8 @@ const envSchema = z.object({
   //   REFRESH_TOKEN_SECRET: z.string().min(32).optional(),
   REFRESH_TOKEN_EXPIRES_IN: z.int().default(60),
 
+  POLKA_KEY: z.string(),
+
   // Security
   //   BCRYPT_ROUNDS: z.coerce.number().min(10).max(20).default(12),
 

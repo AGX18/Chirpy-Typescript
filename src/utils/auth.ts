@@ -65,3 +65,12 @@ export function getBearerToken(req: Request): string {
 export function makeRefreshToken() {
   return crypto.randomBytes(32).toString("hex");
 }
+
+export function getAPIKey(req: Request) {
+  console.log("Authorization API key:", req.get("Authorization"));
+  const key = req.get("Authorization")?.split("ApiKey ")[1];
+  if (!key) {
+    throw new UnauthorizedError("API key is not found!");
+  }
+  return key;
+}

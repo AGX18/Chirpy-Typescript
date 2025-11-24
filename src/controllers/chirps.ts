@@ -1,14 +1,15 @@
 import { NextFunction, Response, Request } from "express";
-import { BadRequest } from "../errors.js";
-import { NewChirp } from "../database/schema.js";
-import { Result } from "drizzle-orm/sqlite-core/session.js";
+import { BadRequest, ForbiddenError, NotFoundError } from "../errors.js";
 import {
   createChirp,
   getAllChirps,
   getChirp,
+  deleteChirp,
 } from "../database/queries/chirps.js";
 import { validateJWT, getBearerToken } from "../utils/auth.js";
 import { env } from "../env.js";
+import { th } from "zod/v4/locales";
+import { check } from "zod";
 export function validate_chirp(body: string) {
   if (typeof body !== "string") {
     throw new BadRequest("Chirp's body is invalid.");
@@ -75,6 +76,17 @@ export async function getAllChirpsHandler(
   next: NextFunction,
 ) {
   try {
+    let authorId = undefined;
+    let authorIdQuery = req.query.authorId;
+    if (typeof authorIdQuery === "string") {
+      authorId = authorIdQuery;
+    }
+    if (authorId) {
+      // filter based on authorID
+      const allChirps = await getAllChirps(authorId);
+      res.status(200).json(allChirps);
+      return;
+    }
     const allChirps = await getAllChirps();
     res.status(200).json(allChirps);
   } catch (error) {
@@ -94,6 +106,32 @@ export async function getChirpHandler(
       return;
     }
     res.status(200).json(selectedChirp);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteChirpHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const token = getBearerToken(req);
+    if (!token) {
+      throw new ForbiddenError("access token is not found! login first");
+    }
+    const userID = validateJWT(token, env.JWT_SECRET);
+    const chirpID = req.params.chirpID;
+    const chirp = await getChirp(chirpID);
+    if (userID != chirp.user_id) {
+      throw new ForbiddenError("You can't delete this chirp");
+    }
+    const deletedChirp = await deleteChirp(chirpID);
+    if (deletedChirp == undefined) {
+      throw new NotFoundError("Chirp not found");
+    }
+    res.status(204).json(deletedChirp);
   } catch (error) {
     next(error);
   }
