@@ -13,6 +13,7 @@ import {
   loginHandler,
   refreshHandler,
   revokeHandler,
+  updateUserHandler,
 } from "./controllers/users.js";
 // Create Express application
 const app = express();
@@ -29,6 +30,7 @@ app.post("/admin/reset", resetHandler);
  */
 app.post("/api/users", createUserHandler);
 app.post("/api/login", loginHandler);
+app.put("/api/users", updateUserHandler);
 
 app.post("/api/chirps", createChirpHandler);
 app.get("/api/chirps", getAllChirpsHandler);

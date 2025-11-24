@@ -2,6 +2,7 @@ import {
   createUser,
   getUserByEmail,
   getUserById,
+  updateUser,
 } from "src/database/queries/users.js";
 import { Response, Request, NextFunction } from "express";
 import {
@@ -19,6 +20,11 @@ import {
   getRefreshToken,
   revokeRefreshToken,
 } from "../database/queries/refreshTokens.js";
+
+import { validateJWT } from "../utils/auth.js";
+
+import { updateUserSchema, updateUserType } from "../utils/validators.js";
+import { hash } from "crypto";
 export async function createUserHandler(req: Request, res: Response) {
   const hashed_passoword = await hashPassword(req.body.password);
   const newUser = await createUser({
@@ -97,6 +103,27 @@ export async function revokeHandler(req: Request, res: Response) {
   const refreshToken = await revokeRefreshToken(token);
 
   res.status(204).json();
+}
+
+export async function updateUserHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const token = getBearerToken(req);
+    const userId = validateJWT(token, env.JWT_SECRET);
+
+    const data = updateUserSchema.parse(req.body);
+    const updatedUser = await updateUser(
+      userId,
+      await hashPassword(data.password),
+      data.email,
+    );
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
 }
 
 function parseDurationToSeconds(timeString: string) {
